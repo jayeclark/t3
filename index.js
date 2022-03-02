@@ -1,5 +1,3 @@
-import { getKey } from 'get.js';
+import { getKey } from './get.js';
 
-export const process = {
-  env: (key) => getKey(key)
-}
+process.env = (key) => getKey(key)
