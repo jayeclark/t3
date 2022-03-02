@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+        <link href="styles.css" rel="stylesheet">
+        <link rel="icon" type="image/x-icon" href="https://jayeclark.github.io/jay.ico">
+        <title>Tiny Tech Trivia</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <header id="header" style="min-height: 68px">
+        </header>
+        <section class="container options-section">
+            <div style="display: flex; flex-wrap: wrap;">
+                <div class="about-bio">
+                    <h4>About Me</h4>
+                    <p>I'm a career-transitioning full stack SWE focusing on React & Express. I’ve contributed code to 70+ Open Source Software projects and have gained real-life experience in several additional stacks through those efforts.
+                    </p>
+                    <p>My previous experience includes co-founding and running a talent management business for gaming content creators, working in management consulting, teaching at Harvard & MIT, and internships at a nonprofit biotech and a software startup. I received my AB <i>magna cum laude</i> from Harvard, where my thesis on internet culture was nominated for a Hoopes Prize.
+                    </p>
+                    <p>In my spare time, I enjoy traveling, volunteering for my neighborhood cat rescue org, and cultivating my amateur chef & food photographer skills.
+                    </p>
+                </div>
+                <div class="about-picture" style="margin-top: 40px">
+                    <img width="100%" src="https://jayeclark.github.io/images/profile.jpg" alt="profile pic">
+                </div>
+            <div>
+        </section>
+        <footer id="footer" class="footer-ribbon">
+        </footer>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+        <script>
+            const process = {};
+            
+            const extractBody = (str) => {
+                let start = str.search(/<body>/) + 6;
+                let end = str.search(/<\/body>/);
+                return str.substring(start, end);
+            }
+
+            window.onload = (async () => {
+                let header = await fetch('navbar.html');
+                let headerText = await header.text();
+                document.querySelector('#header').innerHTML = extractBody(headerText);
+
+                let footer = await fetch('footer.html');
+                let footerText = await footer.text();
+                document.querySelector('#footer').innerHTML = extractBody(footerText);
+
+                document.querySelector('#home-page').classList.add("active");
+            })
+        </script>
+    </body>
+</html>
+

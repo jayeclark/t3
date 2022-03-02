@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/4.1.0/superagent.js" integrity="sha512-cgthOIsqDqRtVyt9wQNxocJhjVy/FfXmLpNy+E/0OMGmLyhK/qHsoSpSz7ieyXOnEivkCg3HdHv7LIza9MH5UA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <link href="styles.css" rel="stylesheet">
+        <link rel="icon" type="image/x-icon" href="https://jayeclark.github.io/jay.ico">
+        <title>Tiny Tech Trivia</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <header id="header" style="min-height: 68px">
+        </header>
+        <div id="questions" style="margin: 0px 10%">
+        </div>
+        <section class="container" style="margin: 30px 10% 50px 10%; width: 80%">
+        <p id="input-intro">Welcome to <b>Tiny Tech Trivia: Hard Mode</b>! Select a topic and number of questions, then click "Start Quiz" to get started.</p>
+        <form>
+        <div id="input-wrapper" class="input-wrapper">
+            <div class="quiz-input">
+                <h3>Topic</h3>
+                <select id="category" name="category" onchange="handleChange(event)">
+                    <option value="Code" selected="selected">Code</option>
+                    <option value="Docker">Docker</option>
+                    <option value="CMS">CMS</option>
+                    <option value="Linux">Linux</option>
+                    <option value="xyzyz">Random</option>
+                </select>
+            </div>
+            <div class="quiz-input">
+                <h3>Questions</h3>
+                <select id="number" name="number" onchange="handleChange(event)">
+                    <option value="5" selected="selected">5 questions</option>
+                    <option value="10">10 questions</option>
+                    <option value="20">20 questions</option>
+                </select>
+            </div>
+        </div>
+        <button id="start-stop" class="btn btn-success quiz-button" type="button">
+            Start Quiz
+        </button>
+        </form>
+        </section>
+        <footer id="footer" class="footer-ribbon">
+        </footer>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+        <script>
+
+            const formValues = {category: "Code", difficulty: "easy", number: "5"};
+            let questions = [];
+            let correct = [];
+
+            const process = {};
+            
+            const handleChange = (event) => {
+                let field = event.target.id;
+                formValues[field] = event.target.value;
+                if (field == "number") {
+                    correct = new Array(Number(number));
+                }
+            }
+
+            const reload = () => {
+                questions = [];
+                correct = [];
+                document.getElementById("questions").innerHTML = "";
+                document.getElementById("input-wrapper").style.display = "";
+                document.getElementById("input-intro").style.display = "";
+
+                const button = document.getElementById('start-stop');
+                button.classList.add("btn-success");
+                button.classList.remove("btn-warning");
+                button.classList.remove("btn-danger");
+                button.innerHTML = "Start Quiz";
+                button.removeEventListener('click', reload);
+                button.addEventListener('click', loadQuestions);
+            }
+
+            const displayQuestions = (arr) => {
+                const element = document.getElementById("questions");
+                const heading = document.createElement("h1");
+                heading.style.color = "rgb(100, 176, 67)";
+                heading.style.marginTop = "30px";
+                heading.innerHTML = "Hard Quiz";
+                element.append(heading);
+                const inner = arr.map((q) => {
+                    let answers = Object.keys(q.answers);
+                    let filtered_answers = answers.filter(a => q.answers[a] !== null);
+
+                    let wrapper = document.createElement('div', { id: q.id});
+
+                    wrapper.classList.add("question");
+                    let question = document.createElement('p');
+                    question.style.fontWeight = "600";
+                    question.innerHTML = q.question.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+                    wrapper.appendChild(question);
+
+                    filtered_answers.forEach(a => {
+                        let button = document.createElement('button', {id: `${q.id}-${a}_correct`, type: "button", onClick: (e) => checkAnswer(e)});
+                        button.id = `${q.id}-${a}_correct`;
+                        button.type = "button";
+                        button.addEventListener('click', (e) => checkAnswer(e));
+                        button.style.fontSize = "0.9rem";
+                        button.style.margin = "8px";
+
+                        console.log(q.answers[a].replace(/</g,"&lt;").replace(/>/g,"&gt;"));
+                        let buttonText = document.createElement('text', {children: q.answers[a].replaceAll("<","\<").replaceAll(">","\>")})
+                        button.innerHTML = q.answers[a].replace(/</g,"&lt;").replace(/>/g,"&gt;");
+                        button.classList.add("btn");
+                        button.classList.add("btn-light");
+                        wrapper.appendChild(button);
+                    })
+                    return wrapper;
+                });
+                inner.forEach(innerChild => {
+                    const hRule = document.createElement('hr');
+                    element.appendChild(hRule);
+                    element.appendChild(innerChild);
+                })
+            }
+
+            const checkAnswer = (event) => {
+                let answerId = event.target.id.split('-');
+                let button = document.getElementById(event.target.id);
+                let index = questions.findIndex(q => Number(q.id) === Number(answerId[0]));
+                let {correct_answers} = questions[index];
+                if (correct_answers[answerId[1]] == 'true') {
+                    correct[index] = true;
+                    button.classList.add("btn-success");
+                    button.classList.remove("btn-light");
+                } else {
+                    button.classList.add("btn-danger");
+                    button.classList.remove("btn-light");
+                }
+            }
+
+            const loadQuestions = async (event) => {
+                const button = document.getElementById('start-stop');
+                button.classList.add("btn-warning");
+                button.classList.remove("btn-success");
+                button.innerHTML = "Loading Questions";
+                button.removeEventListener('click', loadQuestions);
+                questions = await superagent
+                    .get('https://quizapi.io/api/v1/questions')
+                    .query({
+                        category: formValues.category,
+                        difficulty: formValues.difficulty,
+                        limit: formValues.number
+                    })
+                    .set('X-API-Key', 'we8GiS6gSJC4TpYB1KCPMjGvgyWnrbvTNQNUfqX7')
+                    .set('Accept', 'application/json')
+                    .then(res => {
+                        return res.body;
+                        });
+                document.getElementById("input-wrapper").style.display = "none";
+                document.getElementById("input-intro").style.display = "none";
+                displayQuestions(questions);
+                button.innerHTML = "New Quiz";
+                button.addEventListener('click', reload);
+            }
+
+            const extractBody = (str) => {
+                let start = str.search(/<body>/) + 6;
+                let end = str.search(/<\/body>/);
+                return str.substring(start, end);
+            }
+
+            window.onload = (async () => {
+                const button = document.getElementById("start-stop");
+                button.addEventListener('click', loadQuestions);
+                let header = await fetch('navbar.html');
+                let headerText = await header.text();
+                document.querySelector('#header').innerHTML = extractBody(headerText);
+
+                let footer = await fetch('footer.html');
+                let footerText = await footer.text();
+                document.querySelector('#footer').innerHTML = extractBody(footerText);
+                document.querySelector('#hard-page').classList.add("active");
+            })
+        </script>
+    </body>
+</html>

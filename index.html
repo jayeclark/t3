@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+        <link href="styles.css" rel="stylesheet">
+        <link rel="icon" type="image/x-icon" href="https://jayeclark.github.io/jay.ico">
+        <title>Tiny Tech Trivia</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <header id="header" style="min-height: 68px">
+        </header>
+        <section class="container options-section" style="">
+            <div>
+                <p style="width: 100%; margin-bottom: 30px;">Welcome to <b>Tiny Tech Trivia</b>, a tiny website to test your knowledge of selected tech topics. Please pick a quiz mode:</p>
+                <div class="options-wrapper">
+                    <a href="easy.html">
+                        <div class="quiz-option">
+                            <h3>Easy</h3>
+                            <p>Easy questions for beginners.</p>
+                        </div>
+                    </a>
+                    <a href="medium.html">
+                        <div class="quiz-option">
+                            <h3 style="color: rgb(100, 176, 67)">Medium</h3>
+                            <p>Intermediate questions for advanced learners.</p>
+                        </div>
+                    </a>
+                    <a href="hard.html">
+                        <div class="quiz-option">
+                            <h3 style="color: rgb(100, 176, 67)">Hard</h3>
+                            <p>Advanced questions to broaden your knowledge base.</p>
+                        </div>
+                    </a>
+                </div>
+            <div>
+        </section>
+        <footer id="footer" class="footer-ribbon">
+        </footer>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+        <script>
+            const process = {};
+            const extractBody = (str) => {
+                let start = str.search(/<body>/) + 6;
+                let end = str.search(/<\/body>/);
+                return str.substring(start, end);
+            }
+
+            window.onload = (async () => {
+                let header = await fetch('navbar.html');
+                let headerText = await header.text();
+                document.querySelector('#header').innerHTML = extractBody(headerText);
+
+                let footer = await fetch('footer.html');
+                let footerText = await footer.text();
+                document.querySelector('#footer').innerHTML = extractBody(footerText);
+
+                document.querySelector('#home-page').classList.add("active");
+            })
+        </script>
+    </body>
+</html>
+

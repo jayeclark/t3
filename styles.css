@@ -1,0 +1,112 @@
+.options-wrapper {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+}
+
+#input-intro {
+  width: 100%;
+  margin-bottom: 30px;
+}
+.input-wrapper {
+  width: 100%;
+  border-radius: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: space-evenly;
+  border: 1px solid rgb(100, 176, 67);
+}
+
+.input-wrapper select {
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.options-wrapper a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  width: calc(33% - 20px);
+  margin: 10px;
+  height: inherit;
+}
+.quiz-option, .quiz-input {
+  height: 100%;
+  padding: 20px;
+  border-radius: 20px;
+  width: 100%;
+  border: 1px solid rgb(100, 176, 67);
+}
+.quiz-input {
+  width: fit-content;
+  border: 1px solid transparent;
+  text-align: center;
+}
+
+.quiz-input select {
+  padding: 8px;
+  border-radius: 8px
+}
+
+.quiz-option h3, .quiz-input h3 {
+  color: rgb(100, 176, 67);
+}
+
+.quiz-option p {
+  margin-bottom: 10px;
+}
+
+.quiz-button {
+  padding: 15px 30px;
+  border-radius: 20px;
+  width: 100%;
+  margin: 20px 0px;
+  font-size: 1.5rem;
+}
+
+.footer-ribbon {
+  position: fixed;
+  bottom: 0px;
+  min-height: 44px;
+  width: 100vw
+}
+
+.footer-ribbon a {
+  color: rgb(100, 176, 67);
+  text-decoration: none;
+}
+
+.options-section {
+  margin: 30px 10%;
+  width: 80%;
+  min-height: calc(100vh - 172px);
+  display: flex;
+  align-items: center;
+}
+
+.about-bio {
+  width: 50%;
+  margin-right: 30px;
+}
+.about-picture {
+  width: calc(50% - 30px);
+}
+@media only screen and (max-width: 796px) {
+  .options-wrapper a {
+      width: 80%;
+  }
+  .options-section {
+    max-width: 80%!important;
+  }
+  .about-bio {
+    width: 100%;
+    font-size: 0.8rem;
+    margin-right: 0px;
+  }
+  .about-picture {
+    width: 100%;
+  }
+}
