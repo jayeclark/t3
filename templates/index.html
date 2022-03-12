@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+{% block title %}Tiny Tech Trivia{% endblock %}
+{% block content %}
+    <section class="container options-section">
+        <div>
+            <p style="width: 100%; margin-bottom: 30px;">Welcome to <b>Tiny Tech Trivia</b>, a tiny website to test your knowledge of top tech topics. Please pick a quiz mode:</p>
+            <div class="options-wrapper">
+                <a href="/untimed">
+                    <div class="quiz-option">
+                        <h3>Easy</h3>
+                        <p>Easy questions for beginners.</p>
+                    </div>
+                </a>
+                <a href="medium.html">
+                    <div class="quiz-option">
+                        <h3 style="color: rgb(100, 176, 67)">Medium</h3>
+                        <p>Intermediate questions for advanced learners.</p>
+                    </div>
+                </a>
+                <a href="hard.html">
+                    <div class="quiz-option">
+                        <h3 style="color: rgb(100, 176, 67)">Hard</h3>
+                        <p>Advanced questions to broaden your knowledge base.</p>
+                    </div>
+                </a>
+            </div>
+        <div>
+    </section>
+{% endblock %}
+
