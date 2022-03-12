@@ -1,0 +1,195 @@
+{% extends 'layout.html' %}
+{% block head %}
+    {{ super() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/4.1.0/superagent.js" integrity="sha512-cgthOIsqDqRtVyt9wQNxocJhjVy/FfXmLpNy+E/0OMGmLyhK/qHsoSpSz7ieyXOnEivkCg3HdHv7LIza9MH5UA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>     
+{% endblock %}
+{% block title %}Tiny Tech Trivia{% endblock %}
+{% block content %}
+        <div id="questions" style="margin: 0px 10%">
+        </div>
+        <section class="container" style="margin: 50px 10% 50px 10%; width: 80%">
+        {% if not loaded %}
+            {% if not timed %}
+                <p id="input-intro">Welcome to <b>Tiny Tech Trivia: Untimed Quizzes</b>! Select a topic, difficulty, and number of questions, then click "Start Quiz" to get started.</p>
+            {% endif %}
+            {% if timed %}
+                <p id="input-intro">Welcome to <b>Tiny Tech Trivia: Timed Quizzes</b>! Select a topic, difficulty, and mode, then click "Start Quiz" to get started.</p>
+            {% endif %}
+        <form method="post" id="quiz-form">
+        <div id="input-wrapper" class="input-wrapper">
+            <div class="quiz-input">
+                <h3>Difficulty</h3>
+                <select id="difficulty" name="difficulty">
+                    <option value="Easy" selected="selected">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">CMS</option>
+                    <option value="any">All Levels</option>
+                </select>
+            </div>
+            <div class="quiz-input">
+                <h3>Topic</h3>
+                <select id="category" name="category">
+                    <option value="Code" selected="selected">Code</option>
+                    <option value="Docker">Docker</option>
+                    <option value="CMS">CMS</option>
+                    <option value="Linux">Linux</option>
+                    <option value="xyzyz">Random</option>
+                </select>
+            </div>
+            {% if not timed %}
+            <div class="quiz-input">
+                <h3>Questions</h3>
+                <select id="limit" name="limit">
+                    <option value="5" selected="selected">5 questions</option>
+                    <option value="10">10 questions</option>
+                    <option value="20">20 questions</option>
+                </select>
+            </div>
+            {% endif %}
+            {% if timed %}
+            <div class="quiz-input">
+                <h3>Mode</h3>
+                <select id="limit" name="limit">
+                    <option value="two" selected="selected">2 minutes, 10 questions</option>
+                    <option value="five">5 minutes, 10 questions</option>
+                    <option value="max">10 minutes, unlimited questions</option>
+                </select>
+            </div>
+            {% endif %}
+            
+        </div>
+        <button id="start-stop" class="btn btn-success quiz-button" type="submit" >
+            Start Quiz
+        </button>
+        </form>
+        {% endif %}
+        {% if loaded %}
+            <h1 style="color: rgb(100,176,67); margin-top: 30px">Quiz</h1>
+            {% for i in range(len) %}
+                <div class="question" id="{{data[i].id}}">
+                    <p style="font-weight: 600;">
+                        {{data[i].question}}
+                    </p>
+                    <div style="display: flex; flex-wrap: wrap;">
+                    {% for c in ['a','b','c','d','e','f'] %}
+                        {% if not data[i].answers['answer_'+c] == None %}
+                            <form>
+                                <input type="hidden" name="questionID">
+                                <input type="hidden" name="answer">
+                                <button class="btn btn-light" id="{{data[i].id}}-{{c}}_correct" type="button" style="font-size: 0.9rem; margin: 8px; border: 1px solid #eee" onclick="checkAnswer(event)">
+                                    {{ data[i].answers['answer_'+c] }}  
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% endfor %}
+                    {% if data[i]['multiple_correct_answers'] == 'true' %}
+                        <input type="hidden" name="answer-count" id="{{data[i].id}}-count" value="0">
+                    {% endif %}
+                    </div>
+                    <div style="margin: 20px 0px; padding: 10px; border-radius: 8px; border: 1px solid transparent" id="{{data[i].id}}-feedback-div">&nbsp;</div>
+                </div>
+            {% endfor %}
+            <input id="data-stream" type="hidden" value="{{ datastream }}">
+        {% endif %}
+        </section>
+        <script>
+            let process = {};
+            async function loadQuestions() {
+                const formValues = {
+                    category: document.getElementById("category").value,
+                    difficulty: document.getElementById("difficulty").value,
+                    number: document.getElementById("limit").value
+                }
+                console.log(formValues);
+                questions = await superagent
+                    .get('https://quizapi.io/api/v1/questions')
+                    .query({
+                        category: formValues.category,
+                        difficulty: formValues.difficulty,
+                        limit: formValues.number
+                    })
+                    .set('X-API-Key', process.env('apiKey'))
+                    .set('Accept', 'application/json')
+                    .then(res => {
+                        document.getElementById("hidden-data").value = JSON.stringify(res.body);           
+                        console.log(res);
+                        const form = document.getElementById("quiz-form");
+                        console.log('submitting');
+                        form.submit();  
+                        return res.body;
+                    });
+                return questions;
+            }
+
+            function addHiddenData(event) {
+                console.log('called');
+                //event.preventDefault();
+                const form = document.getElementById("quiz-form");
+                console.log(form);
+                //loadQuestions();             
+            }
+
+            async function postdata(url, data) {
+                console.log(JSON.stringify(data))
+                const response = await fetch(url, {
+                    method: 'POST', 
+                    cache: 'no-cache',
+                    headers: {
+                    'Content-Type': 'application/json'
+                    },
+                    redirect: 'follow', 
+                    referrerPolicy: 'no-referrer',
+                    body: JSON.stringify(data) 
+                });
+                return response.json(); 
+            }
+
+            function checkAnswer(event) {
+                event.preventDefault();
+                const [questionID, answer] = event.target.id.split("-");
+                postdata('/checkanswer', { questionID }).then((answers) => {
+                    const keys = ['answer_a_correct','answer_b_correct','answer_c_correct','answer_d_correct','answer_e_correct','answer_f_correct'];
+                    const correctAnswers = keys.filter(x => answers[x] === 'true');
+                    const feedbackDiv = document.getElementById(`${questionID}-feedback-div`);
+                
+                    if (answers[`answer_${answer}`] === 'true') {
+                        event.target.style.backgroundColor = "green";
+                        event.target.style.color = "white";
+
+                        feedbackDiv.style.color = "green";
+                        feedbackDiv.style.border = "1px solid green";
+
+                        if (correctAnswers.length > 1 && event.target.style.backgroundColor !== "green") {
+                            let answerCount = document.getElementById(`${questionID}-count`);
+                            let curr = parseInt(answerCount.value);
+                            curr += 1;
+                            answerCount.value = curr.toString();
+                            if (curr == correctAnswers.length) {
+                                feedbackDiv.innerHTML = "Correct!";
+                            } else if (curr > 0) {
+                                feedbackDiv.innerHTML = "Partially correct! (There are multiple correct answers.)";
+                            }
+                        } else {
+                            feedbackDiv.innerHTML = "Correct!";
+                        }
+                    } else {
+                        event.target.style.backgroundColor = "darkred";
+                        event.target.style.color = "white";
+                        if (question.multiple_correct_answers == 'true' && event.target.style.backgroundColor !== "darkred") {
+                            let answerCount = document.getElementById(`${questionID}-count`);
+                            let curr = parseInt(answerCount.value);
+                            if (curr === 0) {
+                                feedbackDiv.innerHTML = "Incorrect! Try again.";
+                                feedbackDiv.style.color = "darkred";
+                                feedbackDiv.style.border = "1px solid darkred";
+                            }
+                        } else {
+                            feedbackDiv.innerHTML = "Incorrect! Try again.";
+                            feedbackDiv.style.color = "darkred";
+                            feedbackDiv.style.border = "1px solid darkred";
+                        }
+                    }
+                })
+            }
+        </script>
+{% endblock %}
