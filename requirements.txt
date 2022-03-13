@@ -2,3 +2,4 @@ Flask
 requests
 pycurl
 cs50
+gunicorn
