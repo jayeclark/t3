@@ -5,9 +5,9 @@
 {% endblock %}
 {% block title %}Tiny Tech Trivia{% endblock %}
 {% block content %}
-        <section class="container" style="margin: 50px 10vw 50px 10vw; width: 80vw; max-width: unset">
+        <section class="container quiz-container">
         {% if not loaded %}
-            <p id="input-intro" style="text-align:center">Welcome to <b>Regex Quizzes</b>! Select a topic, difficulty, and number of questions, then click "Start Quiz" to get started.</p>
+            <p id="input-intro" class="welcome-message">Welcome to <b>Regex Quizzes</b>! Select a topic, difficulty, and number of questions, then click "Start Quiz" to get started.</p>
             <form method="post" id="quiz-form">
             <div id="input-wrapper" class="input-wrapper">
                 <div class="quiz-input">
@@ -45,24 +45,24 @@
             </form>
         {% endif %}
         {% if loaded %}
-            <h1 style="color: rgb(100,176,67); margin-top: 30px; margin-bottom: 20px">Regex Quiz</h1>
-            <div id="questions" style="margin: -10px; padding: 10px;">
+            <h1 class="green mt-30px mb-20px">Regex Quiz</h1>
+            <div id="questions" class="questions-container">
                 {% for i in range(len) %}
                     <div class="question" id="{{data[i].id}}">
-                        <p style="font-weight: 600; padding-top: 20px; border-top: 1px solid #efefef">
+                        <p class="question-content">
                             <b>Write a response that will match the following regular expression:</b><br>
                             <span id="{{data[i].id}}-regex">{{data[i].regex}}</span>
                         </p>
-                        <div style="display: flex; flex-wrap: wrap;">
+                        <div class="answer-buttons">
                             <form>
                                 <input type="hidden" name="questionID" value="{{data[i].id}}">
                                 <input id="{{data[i].id}}-guess" type="text" name="answer" placeholder="Write answer here...">
-                                <button class="btn btn-light" id="{{data[i].id}}-submit" type="button" style="font-size: 0.9rem; margin: 8px; border: 1px solid #eee; cursor: pointer;" onclick="checkRegex(event)">
+                                <button class="btn btn-light answer-button" id="{{data[i].id}}-submit" type="button" onclick="checkRegex(event)">
                                     Check Answer  
                                 </button>
                             </form>
                         </div>
-                        <div style="margin: 20px 0px; padding: 10px; border-radius: 8px; border: 1px solid transparent" id="{{data[i].id}}-feedback-div">&nbsp;</div>
+                        <div class="feedback-container" id="{{data[i].id}}-feedback-div">&nbsp;</div>
                     </div>
                 {% endfor %}
             </div>

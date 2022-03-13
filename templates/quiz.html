@@ -5,14 +5,14 @@
 {% endblock %}
 {% block title %}Tiny Tech Trivia{% endblock %}
 {% block content %}
-        <section class="container" style="margin: 50px 10vw 50px 10vw; width: 80vw; max-width: unset">
+        <section class="container quiz-container">
         {% if not loaded %}
             {% if not timed %}
-                <p id="input-intro" style="text-align:center">Welcome to <b>Untimed Quizzes</b>! Select a topic, difficulty, and number of questions, then click "Start Quiz" to get started.</p>
+                <p id="input-intro" class="welcome-message">Welcome to <b>Untimed Quizzes</b>! Select a topic, difficulty, and number of questions, then click "Start Quiz" to get started.</p>
                 <form method="post" id="quiz-form">
             {% endif %}
             {% if timed %}
-                <p id="input-intro" style="text-align:center">Welcome to <b>Timed Quizzes</b>! Select a topic, difficulty, and mode, then click "Start Quiz" to get started.</p>
+                <p id="input-intro" class="welcome-message">Welcome to <b>Timed Quizzes</b>! Select a topic, difficulty, and mode, then click "Start Quiz" to get started.</p>
                 <form method="post" id="quiz-form">
             {% endif %}
             <div id="input-wrapper" class="input-wrapper">
@@ -65,26 +65,26 @@
         {% endif %}
         {% if loaded %}
             {% if not timed %}
-            <h1 style="color: rgb(100,176,67); margin-top: 30px">Untimed Quiz</h1>
+            <h1 class="green mt-30px">Untimed Quiz</h1>
             {% else %}
-            <div style="position:fixed; top: 80px; min-height: 162px; width: 80%; text-align: center; border-radius: 10px; border: 1px solid #ccc; padding: 20px; font-size: 5rem; background-color: white" id="countdown-clock" title="{{available}}"></div>
-            <h1 id="quiz-title" style="color: rgb(100,176,67); margin-top: 200px">Timed Quiz</h1>
+            <div id="countdown-clock" title="{{available}}"></div>
+            <h1 id="quiz-title" class="green mt-200px">Timed Quiz</h1>
             <p id="quiz-instructions">Answer as many questions as you can before the timer runs out!</p>
             <div id="results"></div>
             {% endif %}
-            <div id="questions">
+            <div id="questions" class="questions-container">
                 {% for i in range(len) %}
                     <div class="question" id="{{data[i].id}}">
-                        <p style="font-weight: 600; padding-top: 20px; border-top: 1px solid #efefef">
+                        <p class="question-content">
                             {{data[i].question}}
                         </p>
-                        <div style="display: flex; flex-wrap: wrap;">
+                        <div class="answer-buttons">
                         {% for c in ['a','b','c','d','e','f'] %}
                             {% if not data[i].answers['answer_'+c] == None %}
                                 <form>
                                     <input type="hidden" name="questionID">
                                     <input type="hidden" name="answer">
-                                    <button class="btn btn-light" id="{{data[i].id}}-{{c}}_correct" type="button" style="font-size: 0.9rem; margin: 8px; border: 1px solid #eee; cursor: pointer;" onclick="checkAnswer(event)">
+                                    <button class="btn btn-light answer-button" id="{{data[i].id}}-{{c}}_correct" type="button" onclick="checkAnswer(event)">
                                         {{ data[i].answers['answer_'+c] }}  
                                     </button>
                                 </form>
@@ -92,7 +92,7 @@
                         {% endfor %}
                             <input type="hidden" name="answer-count" id="{{data[i].id}}-count" value="0">
                         </div>
-                        <div style="margin: 20px 0px; padding: 10px; border-radius: 8px; border: 1px solid transparent" id="{{data[i].id}}-feedback-div">&nbsp;</div>
+                        <div class="feedback-container" id="{{data[i].id}}-feedback-div">&nbsp;</div>
                     </div>
                 {% endfor %}
             </div>
