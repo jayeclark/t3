@@ -1,0 +1,265 @@
+{% extends 'layout.html' %}
+{% block head %}
+    {{ super() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/4.1.0/superagent.js" integrity="sha512-cgthOIsqDqRtVyt9wQNxocJhjVy/FfXmLpNy+E/0OMGmLyhK/qHsoSpSz7ieyXOnEivkCg3HdHv7LIza9MH5UA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>     
+{% endblock %}
+{% block title %}Tiny Tech Trivia{% endblock %}
+{% block content %}
+        <section class="container" style="margin: 50px 10vw 50px 10vw; width: 80vw; max-width: unset">
+        {% if not loaded %}
+            {% if not timed %}
+                <p id="input-intro">Welcome to <b>Tiny Tech Trivia: Untimed Quizzes</b>! Select a topic, difficulty, and number of questions, then click "Start Quiz" to get started.</p>
+                <form method="post" id="quiz-form">
+            {% endif %}
+            {% if timed %}
+                <p id="input-intro">Welcome to <b>Tiny Tech Trivia: Timed Quizzes</b>! Select a topic, difficulty, and mode, then click "Start Quiz" to get started.</p>
+                <form method="post" id="quiz-form">
+            {% endif %}
+            <div id="input-wrapper" class="input-wrapper">
+                <div class="quiz-input">
+                    <h3>Difficulty</h3>
+                    <select id="difficulty" name="difficulty">
+                        <option value="Easy" selected="selected">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">CMS</option>
+                        <option value="Any">All Levels</option>
+                    </select>
+                </div>
+                <div class="quiz-input">
+                    <h3>Topic</h3>
+                    <select id="category" name="category">
+                        <option value="Code" selected="selected">Code</option>
+                        <option value="Docker">Docker</option>
+                        <option value="CMS">CMS</option>
+                        <option value="Linux">Linux</option>
+                        <option value="Any">Random</option>
+                    </select>
+                </div>
+                {% if not timed %}
+                <div class="quiz-input">
+                    <h3>Questions</h3>
+                    <select id="limit" name="limit">
+                        <option value="5" selected="selected">5 questions</option>
+                        <option value="10">10 questions</option>
+                        <option value="20">20 questions</option>
+                    </select>
+                </div>
+                {% endif %}
+                {% if timed %}
+                <div class="quiz-input">
+                    <h3>Mode</h3>
+                    <select id="limit" name="limit">
+                        <option value="two" selected="selected">2 mins, 10 questions</option>
+                        <option value="five">5 mins, 15 questions</option>
+                        <option value="max">10 mins, up to 50 questions</option>
+                    </select>
+                </div>
+                {% endif %}
+                
+            </div>
+            <button id="start-stop" class="btn btn-success quiz-button" type="submit" onclick="loading(event)">
+                Start Quiz
+            </button>
+            </form>
+        {% endif %}
+        {% if loaded %}
+            {% if not timed %}
+            <h1 style="color: rgb(100,176,67); margin-top: 30px">Untimed Quiz</h1>
+            {% else %}
+            <div style="position:fixed; top: 80px; min-height: 162px; width: 80%; text-align: center; border-radius: 10px; border: 1px solid #ccc; padding: 20px; font-size: 5rem; background-color: white" id="countdown-clock" title="{{available}}"></div>
+            <h1 id="quiz-title" style="color: rgb(100,176,67); margin-top: 200px">Timed Quiz</h1>
+            <p id="quiz-instructions">Answer as many questions as you can before the timer runs out!</p>
+            <div id="results"></div>
+            {% endif %}
+            <div id="questions">
+                {% for i in range(len) %}
+                    <div class="question" id="{{data[i].id}}">
+                        <p style="font-weight: 600; padding-top: 20px; border-top: 1px solid #efefef">
+                            {{data[i].question}}
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap;">
+                        {% for c in ['a','b','c','d','e','f'] %}
+                            {% if not data[i].answers['answer_'+c] == None %}
+                                <form>
+                                    <input type="hidden" name="questionID">
+                                    <input type="hidden" name="answer">
+                                    <button class="btn btn-light" id="{{data[i].id}}-{{c}}_correct" type="button" style="font-size: 0.9rem; margin: 8px; border: 1px solid #eee; cursor: pointer;" onclick="checkAnswer(event)">
+                                        {{ data[i].answers['answer_'+c] }}  
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% endfor %}
+                        {% if data[i]['multiple_correct_answers'] == 'true' %}
+                            <input type="hidden" name="answer-count" id="{{data[i].id}}-count" value="0">
+                        {% endif %}
+                        </div>
+                        <div style="margin: 20px 0px; padding: 10px; border-radius: 8px; border: 1px solid transparent" id="{{data[i].id}}-feedback-div">&nbsp;</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <input type="hidden" id="correct-answer-tally" value="0">
+        <input type="hidden" id="incorrect-answer-tally" value="0">
+        
+        </section>
+        <script>
+            let process = {};
+
+            window.onload = () => {
+                const countdown = document.getElementById('countdown-clock');
+                const totalQuestions = Array.from(document.getElementsByClassName("question")).length;
+                let stopTimeout;
+
+                const getTime = () => {
+                    const time = new Date()
+                    const mins = time.getMinutes();
+                    const secs = time.getSeconds();
+                    const millisecs = time.getMilliseconds();
+                    return mins * 60000 + secs * 1000 + millisecs
+                }
+
+                const stopQuiz = () => {
+                    document.getElementById("quiz-title").innerHTML = "Timed Quiz - Results";
+                    document.getElementById("quiz-title").style.textAlign = "center";
+                    document.getElementById("quiz-instructions").style.display = "none";
+                    const questions = document.getElementById("questions");
+                    questions.style.height = "calc(25vh)";
+                    questions.style.overflow = "scroll";
+                    questions.style.border = "1px solid #efefef";
+                    questions.style.paddig = "0px 10px";
+                    const correct = parseInt(document.getElementById("correct-answer-tally").value);
+                    const incorrect = parseInt(document.getElementById("incorrect-answer-tally").value);
+                    const resultsDiv = document.createElement('div');
+                    const correctDiv = document.createElement('div');
+                    if (countdown.innerText !== "Time's Up") {
+                        correctDiv.innerHTML = `Completed in ${countdown.innerHTML}!`;
+                    } else {
+                        correctDiv.innerHTML = `Correct Responses: ${correct} out of ${totalQuestions} (${(correct * 100 / totalQuestions).toFixed(0)}%)`;
+                    
+                    }
+                    correctDiv.style.fontSize = "2rem";
+                    correctDiv.style.textAlign = "center";
+                    correctDiv.style.fontWeight = "bold";
+                    const incorrectDiv = document.createElement('div');
+                    incorrectDiv.innerHTML = `Incorrect Tries: ${incorrect}`;
+                    incorrectDiv.style.fontSize = "1.35SErem";
+                    incorrectDiv.style.textAlign = "center";
+                    resultsDiv.style.padding = "20px";
+                    resultsDiv.style.margin = "20px 0px";
+                    resultsDiv.appendChild(correctDiv);
+                    resultsDiv.appendChild(incorrectDiv);
+                    document.getElementById("results").appendChild(resultsDiv);
+                };
+
+                const reduceCount = (start, available) => {
+                    if (countdown.innerHTML === "00:01") {
+                        countdown.innerHTML = "Time's Up!"
+                        return true;
+                    }
+                    const correct = parseInt(document.getElementById("correct-answer-tally").value);
+                    if (correct == totalQuestions) {
+                        clearTimeout(stopTimeout)
+                        stopQuiz();
+                        return true;
+                    }
+                    const currentTime = getTime();
+                    const elapsed = currentTime - start;
+                    const newAvailable = available + start - currentTime;
+                    if (newAvailable < 0) {
+                        clearTimeout(stopTimeout)
+                        stopQuiz();
+                        return true;
+                    }
+                    const mins = Math.floor(newAvailable / 60000);
+                    const secs = Math.floor((newAvailable % 60000)/1000);
+                    countdown.innerHTML = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                    setTimeout(() => reduceCount(start, available), 1000);
+                }
+
+
+                if (countdown) {
+                    const availableTime = parseInt(countdown.title);
+                    const startTime = getTime();
+                    reduceCount(startTime, availableTime);
+                    stopTimeout = setTimeout(stopQuiz, availableTime + 100);
+                }
+            };
+            
+            function loading(event) {
+                event.target.classList.remove('btn-success');
+                event.target.classList.add('btn-warning');
+                event.target.innerHTML = "Loading questions...";
+            }
+
+            async function postdata(url, data) {
+                const response = await fetch(url, {
+                    method: 'POST', 
+                    cache: 'no-cache',
+                    headers: {
+                    'Content-Type': 'application/json'
+                    },
+                    redirect: 'follow', 
+                    referrerPolicy: 'no-referrer',
+                    body: JSON.stringify(data) 
+                });
+                return response.json(); 
+            }
+
+            function checkAnswer(event) {
+                event.preventDefault();
+                const [questionID, answer] = event.target.id.split("-");
+                postdata('/checkanswer', { questionID }).then((answers) => {
+                    const keys = ['answer_a_correct','answer_b_correct','answer_c_correct','answer_d_correct','answer_e_correct','answer_f_correct'];
+                    const correctAnswers = keys.filter(x => answers[x] === 'true');
+                    const feedbackDiv = document.getElementById(`${questionID}-feedback-div`);
+                
+                    if (answers[`answer_${answer}`] === 'true') {
+
+                        feedbackDiv.style.color = "green";
+                        feedbackDiv.style.border = "1px solid green";
+
+                        if (correctAnswers.length > 1 && event.target.style.backgroundColor !== "green") {
+                            let answerCount = document.getElementById(`${questionID}-count`);
+                            let curr = parseInt(answerCount.value);
+                            curr += 1;
+                            answerCount.value = curr.toString();
+                            if (curr == correctAnswers.length) {
+                                feedbackDiv.innerHTML = "Correct!";
+                                let tally = parseInt(document.getElementById('correct-answer-tally').value);
+                                document.getElementById('correct-answer-tally').value = tally + 1;
+                            } else if (curr > 0) {
+                                feedbackDiv.innerHTML = "Partially correct! (There are multiple correct answers.)";
+                            }
+                        } else {
+                            feedbackDiv.innerHTML = "Correct!";
+                            if (event.target.style.backgroundColor !== "green") {
+                                let tally = parseInt(document.getElementById('correct-answer-tally').value);
+                                document.getElementById('correct-answer-tally').value = tally + 1;
+                            }
+                        }
+                        event.target.style.backgroundColor = "green";
+                        event.target.style.color = "white";
+
+                    } else {
+                        event.target.style.backgroundColor = "darkred";
+                        event.target.style.color = "white";
+                        let tally = parseInt(document.getElementById('incorrect-answer-tally').value);
+                        document.getElementById('incorrect-answer-tally').value = tally + 1;
+                        if (correctAnswers.length > 1 && event.target.style.backgroundColor !== "darkred") {
+                            let answerCount = document.getElementById(`${questionID}-count`);
+                            let curr = parseInt(answerCount.value);
+                            if (curr === 0) {
+                                feedbackDiv.innerHTML = "Incorrect! Try again.";
+                                feedbackDiv.style.color = "darkred";
+                                feedbackDiv.style.border = "1px solid darkred";
+                            }
+                        } else {
+                            feedbackDiv.innerHTML = "Incorrect! Try again.";
+                            feedbackDiv.style.color = "darkred";
+                            feedbackDiv.style.border = "1px solid darkred";
+                        }
+                    }
+                })
+            }
+        </script>
+{% endblock %}

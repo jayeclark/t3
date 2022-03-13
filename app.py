@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request
 import requests
 import json
+import re
 from cs50 import SQL
+from helpers import evaluateQuestion, addToList
 
 app = Flask(__name__)
 db = SQL("sqlite:///data.db")
@@ -30,16 +32,36 @@ def untimed():
         while len(questions) < int(limit):
             response = requests.get('https://quizapi.io/api/v1/questions', headers=headers).json()
             for question in response:
-                isCategory = question['category'] == category
-                isDifficulty = question['difficulty'] == difficulty
-                inList = question['id'] in questionIDs
-                inAllQuestions = db.execute('SELECT id FROM questions WHERE id = ?', question['id'])
-                if isCategory and isDifficulty and len(questions) < int(limit) and not inList:
-                    questions += [question]
-                    questionIDs += [question['id']]
-                if len(inAllQuestions) == 0:
-                    db.execute('INSERT INTO questions (id, question, description, answers, multiple_correct_answers, correct_answers, correct_answer, explanation, tip, tags, category, difficulty) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', 
-                    question['id'], str(question['question']), str(question['description']), json.dumps(question['answers']), str(question['multiple_correct_answers']), json.dumps(question['correct_answers']), str(question['correct_answer']), str(question['explanation']), str(question['tip']), json.dumps(question['tags']), str(question['category']), str(question['difficulty'])
-                    ) 
-        return render_template('untimed.html', page="untimed", loaded=True, data=questions, len=len(questions), datastream=json.dumps(questions), timed=False)
-    return render_template('untimed.html', page="untimed", loaded=False, timed=False)
+                shouldAdd = evaluateQuestion(question, category, difficulty, questionIDs, db)
+                if shouldAdd and len(questions) < int(limit):
+                    addToList(question, questions, questionIDs)
+        return render_template('quiz.html', page="untimed", loaded=True, data=questions, len=len(questions), timed=False)
+    return render_template('quiz.html', page="untimed", loaded=False, timed=False)
+
+@app.route("/timed/", methods=['GET','POST'])
+def timed():
+    if request.method == 'POST':
+        category = request.form['category']
+        mode = request.form['limit']
+        limit = 10
+        available = 120000
+        if mode == "five":
+            limit = 15
+            available = 300000
+        elif mode == "max":
+            limit = 50
+            available = 600000
+        difficulty = request.form['difficulty']
+        questions = []
+        questionIDs = []
+        headers = {
+            'X-Api-Key': 'we8GiS6gSJC4TpYB1KCPMjGvgyWnrbvTNQNUfqX7' 
+        }
+        while len(questions) < int(limit):
+            response = requests.get('https://quizapi.io/api/v1/questions', headers=headers).json()
+            for question in response:
+                shouldAdd = evaluateQuestion(question, category, difficulty, questionIDs, db)
+                if shouldAdd and len(questions) < int(limit):
+                    addToList(question, questions, questionIDs)
+        return render_template('quiz.html', page="timed", loaded=True, data=questions, len=len(questions), timed=True, available=available)
+    return render_template('quiz.html', page="timed", loaded=False, timed=True)
