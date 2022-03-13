@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block title %}Tiny Tech Trivia{% endblock %}
+{% block content %}
+    <section class="container options-section">
+        <div style="display: flex; flex-wrap: wrap;">
+            <div class="about-bio">
+                <h4>Hi, I'm Jay Clark! 👋 </h4>
+                <p>I built this app to provide a quick & simple way to practice coding trivia and regular expressions. It's made with python, Flask, and SQLite and pulls its questions from the public <a href="https://quizapi.io/" target="_blank" rel="noreferrer">Quiz API</a> .
+                </p>
+                <p>I'm a career-transitioning full-stack developer focusing on React & Express. I’ve contributed code to 70+ Open Source Software projects and have gained real-life experience in several additional stacks through those efforts.
+                </p>
+                <p>My previous experience includes running a talent management business for gaming content creators, working in management consulting, and teaching at Harvard & MIT. I received my AB <i>magna cum laude</i> from Harvard, where my thesis on internet culture was nominated for a Hoopes Prize.
+                </p>
+                <p>In my spare time, I enjoy traveling, volunteering for my neighborhood cat rescue org, and cultivating my amateur chef & food photographer skills.
+                </p>
+            </div>
+            <div class="about-picture">
+                <img width="100%" src="{{url_for('static', filename='profile.jpg')}}" alt="profile pic">
+            </div>
+        <div>
+    </section>
+{% endblock %}
+

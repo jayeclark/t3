@@ -3,7 +3,7 @@ import requests
 import json
 import re
 from cs50 import SQL
-from helpers import evaluateQuestion, addToList
+from helpers import evaluateQuestion, addToList, getRegex
 
 app = Flask(__name__)
 db = SQL("sqlite:///data.db")
@@ -12,11 +12,40 @@ db = SQL("sqlite:///data.db")
 def home():
     return render_template('index.html', page="home")
 
+@app.route("/about")
+def about():
+    return render_template('about.html', page="about")
+
 @app.route("/checkanswer", methods=['POST'])
 def checkanswer():
     questionID = request.json['questionID']
     question = db.execute('SELECT correct_answers FROM questions WHERE id = ?', int(questionID))
     return json.loads(question[0]['correct_answers'])
+
+@app.route("/checkregex", methods=['POST'])
+def checkregex():
+    regex = request.json['regex'].replace('&lt;','<').replace('&gt;','>')
+    guess = request.json['guess']
+    print(regex, guess)
+    my_regex = r''+regex
+    matchExists = True if not re.search(my_regex, guess) == None else False
+    return 'true' if matchExists == True else 'false'
+
+@app.route("/regex", methods=['GET','POST'])
+def regex():
+    if request.method == 'POST':
+        category = request.form['category']
+        limit = request.form['limit']
+        difficulty = request.form['difficulty']
+        questions = []
+        questionIDs = []
+        while len(questions) < int(limit):
+            response = getRegex(category, difficulty)
+            if (response['id'] not in questionIDs):
+                questions += [response]
+        return render_template('regex.html', page="regex", loaded=True, data=questions, len=len(questions))
+    return render_template('regex.html', page="regex", loaded=False)
+
 
 @app.route("/untimed/", methods=['GET','POST'])
 def untimed():

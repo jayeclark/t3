@@ -1,0 +1,137 @@
+{% extends 'layout.html' %}
+{% block head %}
+    {{ super() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/4.1.0/superagent.js" integrity="sha512-cgthOIsqDqRtVyt9wQNxocJhjVy/FfXmLpNy+E/0OMGmLyhK/qHsoSpSz7ieyXOnEivkCg3HdHv7LIza9MH5UA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>     
+{% endblock %}
+{% block title %}Tiny Tech Trivia{% endblock %}
+{% block content %}
+        <section class="container" style="margin: 50px 10vw 50px 10vw; width: 80vw; max-width: unset">
+        {% if not loaded %}
+            <p id="input-intro" style="text-align:center">Welcome to <b>Regex Quizzes</b>! Select a topic, difficulty, and number of questions, then click "Start Quiz" to get started.</p>
+            <form method="post" id="quiz-form">
+            <div id="input-wrapper" class="input-wrapper">
+                <div class="quiz-input">
+                    <h3>Topic</h3>
+                    <select id="category" name="category">
+                        <option value="long" selected="selected">Long Strings</option>
+                        <option value="short">Short Strings</option>
+                        <option value="number">Numbers</option>
+                        <option value="form">Form Data</option>
+                        <option value="any">Random</option>
+                    </select>
+                </div>   
+                <div class="quiz-input">
+                    <h3>Difficulty</h3>
+                    <select id="difficulty" name="difficulty">
+                        <option value="easy" selected="selected">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                        <option value="any">Any Level</option>
+                    </select>
+                </div>
+                <div class="quiz-input">
+                    <h3>Questions</h3>
+                    <select id="limit" name="limit">
+                        <option value="1" selected="selected">1 question</option>
+                        <option value="3">3 questions</option>
+                        <option value="5">5 questions</option>
+                        <option value="10">10 questions</option>
+                    </select>
+                </div>
+            </div>
+            <button id="start-stop" class="btn btn-success quiz-button" type="submit" onclick="loading(event)">
+                Start Quiz
+            </button>
+            </form>
+        {% endif %}
+        {% if loaded %}
+            <h1 style="color: rgb(100,176,67); margin-top: 30px; margin-bottom: 20px">Regex Quiz</h1>
+            <div id="questions" style="margin: -10px; padding: 10px;">
+                {% for i in range(len) %}
+                    <div class="question" id="{{data[i].id}}">
+                        <p style="font-weight: 600; padding-top: 20px; border-top: 1px solid #efefef">
+                            <b>Write a response that will match the following regular expression:</b><br>
+                            <span id="{{data[i].id}}-regex">{{data[i].regex}}</span>
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap;">
+                            <form>
+                                <input type="hidden" name="questionID" value="{{data[i].id}}">
+                                <input id="{{data[i].id}}-guess" type="text" name="answer" placeholder="Write answer here...">
+                                <button class="btn btn-light" id="{{data[i].id}}-submit" type="button" style="font-size: 0.9rem; margin: 8px; border: 1px solid #eee; cursor: pointer;" onclick="checkRegex(event)">
+                                    Check Answer  
+                                </button>
+                            </form>
+                        </div>
+                        <div style="margin: 20px 0px; padding: 10px; border-radius: 8px; border: 1px solid transparent" id="{{data[i].id}}-feedback-div">&nbsp;</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <input type="hidden" id="correct-answer-tally" value="0">
+        <input type="hidden" id="incorrect-answer-tally" value="0">
+        
+        </section>
+        <script>
+            let process = {};
+
+            function loading(event) {
+                event.target.classList.remove('btn-success');
+                event.target.classList.add('btn-warning');
+                const messages = ["Loading questions.", "Loading questions..", "Loading questions...", "Loading questions...."];
+                let i = 0;
+                const loadingSequence = () => {
+                    event.target.innerHTML = messages[i];
+                    i += 1;
+                    if (i >= messages.length) { i = 0; }
+                    setTimeout(loadingSequence, 200);
+                }
+                loadingSequence();
+            }
+
+            async function postdata(url, data) {
+                const response = await fetch(url, {
+                    method: 'POST', 
+                    cache: 'no-cache',
+                    headers: {
+                    'Content-Type': 'application/json'
+                    },
+                    redirect: 'follow', 
+                    referrerPolicy: 'no-referrer',
+                    body: JSON.stringify(data) 
+                });
+                return response.json(); 
+            }
+
+            function checkRegex(event) {
+                event.preventDefault();
+                const [questionID] = event.target.id.split("-");
+                const regex = document.getElementById(`${questionID}-regex`).innerHTML;
+                const guess = document.getElementById(`${questionID}-guess`).value;
+                postdata('/checkregex', { regex, guess }).then((res) => {
+                    const feedbackDiv = document.getElementById(`${questionID}-feedback-div`);
+                    if (res === true) {
+                        feedbackDiv.style.color = "green";
+                        feedbackDiv.style.border = "1px solid green";
+
+                        feedbackDiv.innerHTML = "Correct!";
+                        if (event.target.style.backgroundColor !== "green" && event.target.style.backgroundColor !== "darkred") {
+                            let tally = parseInt(document.getElementById('correct-answer-tally').value);
+                            document.getElementById('correct-answer-tally').value = tally + 1;
+                        }
+
+                        event.target.style.backgroundColor = "green";
+                        event.target.style.color = "white";
+
+                    } else {
+                        event.target.style.backgroundColor = "darkred";
+                        event.target.style.color = "white";
+                        let tally = parseInt(document.getElementById('incorrect-answer-tally').value);
+                        document.getElementById('incorrect-answer-tally').value = tally + 1;
+                        feedbackDiv.innerHTML = "Incorrect! Try again.";
+                        feedbackDiv.style.color = "darkred";
+                        feedbackDiv.style.border = "1px solid darkred";
+                    }
+                })
+            }
+        </script>
+{% endblock %}

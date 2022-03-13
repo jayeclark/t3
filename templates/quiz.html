@@ -8,11 +8,11 @@
         <section class="container" style="margin: 50px 10vw 50px 10vw; width: 80vw; max-width: unset">
         {% if not loaded %}
             {% if not timed %}
-                <p id="input-intro">Welcome to <b>Tiny Tech Trivia: Untimed Quizzes</b>! Select a topic, difficulty, and number of questions, then click "Start Quiz" to get started.</p>
+                <p id="input-intro" style="text-align:center">Welcome to <b>Untimed Quizzes</b>! Select a topic, difficulty, and number of questions, then click "Start Quiz" to get started.</p>
                 <form method="post" id="quiz-form">
             {% endif %}
             {% if timed %}
-                <p id="input-intro">Welcome to <b>Tiny Tech Trivia: Timed Quizzes</b>! Select a topic, difficulty, and mode, then click "Start Quiz" to get started.</p>
+                <p id="input-intro" style="text-align:center">Welcome to <b>Timed Quizzes</b>! Select a topic, difficulty, and mode, then click "Start Quiz" to get started.</p>
                 <form method="post" id="quiz-form">
             {% endif %}
             <div id="input-wrapper" class="input-wrapper">
@@ -21,18 +21,19 @@
                     <select id="difficulty" name="difficulty">
                         <option value="Easy" selected="selected">Easy</option>
                         <option value="Medium">Medium</option>
-                        <option value="Hard">CMS</option>
+                        <option value="Hard">Hard</option>
                         <option value="Any">All Levels</option>
                     </select>
                 </div>
                 <div class="quiz-input">
                     <h3>Topic</h3>
                     <select id="category" name="category">
-                        <option value="Code" selected="selected">Code</option>
+                        <option value="Any" selected="selected">All Topics</option>
+                        <option value="Code">Code</option>
                         <option value="Docker">Docker</option>
                         <option value="CMS">CMS</option>
                         <option value="Linux">Linux</option>
-                        <option value="Any">Random</option>
+                        
                     </select>
                 </div>
                 {% if not timed %}
@@ -89,9 +90,7 @@
                                 </form>
                             {% endif %}
                         {% endfor %}
-                        {% if data[i]['multiple_correct_answers'] == 'true' %}
                             <input type="hidden" name="answer-count" id="{{data[i].id}}-count" value="0">
-                        {% endif %}
                         </div>
                         <div style="margin: 20px 0px; padding: 10px; border-radius: 8px; border: 1px solid transparent" id="{{data[i].id}}-feedback-div">&nbsp;</div>
                     </div>
@@ -188,7 +187,15 @@
             function loading(event) {
                 event.target.classList.remove('btn-success');
                 event.target.classList.add('btn-warning');
-                event.target.innerHTML = "Loading questions...";
+                const messages = ["Loading questions", "&nbsp;Loading questions.", "&nbsp;&nbsp;Loading questions..", "&nbsp;&nbsp;&nbsp;Loading questions..."];
+                let i = 0;
+                const loadingSequence = () => {
+                    event.target.innerHTML = messages[i];
+                    i++;
+                    if (i >= messages.length) { i = 0; }
+                    setTimeout(loadingSequence, 400);
+                }
+                loadingSequence();
             }
 
             async function postdata(url, data) {
