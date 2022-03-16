@@ -72,13 +72,13 @@ def timed():
     if request.method == 'POST':
         category = request.form['category']
         mode = request.form['limit']
-        limit = 10
+        limit = 9
         available = 120000
         if mode == "five":
-            limit = 15
+            limit = 18
             available = 300000
         elif mode == "max":
-            limit = 50
+            limit = 48
             available = 600000
         difficulty = request.form['difficulty']
         questions = []

@@ -8,18 +8,8 @@
         <section class="container quiz-container">
         {% if not loaded %}
             <p id="input-intro" class="welcome-message">Welcome to <b>Regex Quizzes</b>! Select a topic, difficulty, and number of questions, then click "Start Quiz" to get started.</p>
-            <form method="post" id="quiz-form">
-            <div id="input-wrapper" class="input-wrapper">
-                <div class="quiz-input">
-                    <h3>Topic</h3>
-                    <select id="category" name="category">
-                        <option value="long" selected="selected">Long Strings</option>
-                        <option value="short">Short Strings</option>
-                        <option value="number">Numbers</option>
-                        <option value="form">Form Data</option>
-                        <option value="any">Random</option>
-                    </select>
-                </div>   
+            <form method="post" id="quiz-form" style="width: max-content; margin:0px auto;">
+            <div id="input-wrapper" class="input-wrapper"> 
                 <div class="quiz-input">
                     <h3>Difficulty</h3>
                     <select id="difficulty" name="difficulty">
@@ -30,12 +20,21 @@
                     </select>
                 </div>
                 <div class="quiz-input">
+                    <h3>Topic</h3>
+                    <select id="category" name="category">
+                        <option value="long" selected="selected">Long Strings</option>
+                        <option value="short">Short Strings</option>
+                        <option value="number">Numbers</option>
+                        <option value="form">Form Data</option>
+                        <option value="any">Random</option>
+                    </select>
+                </div>  
+                <div class="quiz-input">
                     <h3>Questions</h3>
                     <select id="limit" name="limit">
-                        <option value="1" selected="selected">1 question</option>
-                        <option value="3">3 questions</option>
-                        <option value="5">5 questions</option>
-                        <option value="10">10 questions</option>
+                        <option value="3" selected="selected">3 questions</option>
+                        <option value="9">9 questions</option>
+                        <option value="18">18 questions</option>
                     </select>
                 </div>
             </div>
@@ -50,8 +49,8 @@
                 {% for i in range(len) %}
                     <div class="question" id="{{data[i].id}}">
                         <p class="question-content">
-                            <b>Write a response that will match the following regular expression:</b><br>
-                            <span id="{{data[i].id}}-regex">{{data[i].regex}}</span>
+                            Write a response that will match the following regular expression:<br>
+                            <span id="{{data[i].id}}-regex" style="font-family:'Courier New', Courier, monospace">{{data[i].regex}}</span>
                         </p>
                         <div class="answer-buttons">
                             <form>
@@ -111,8 +110,7 @@
                     const feedbackDiv = document.getElementById(`${questionID}-feedback-div`);
                     if (res === true) {
                         feedbackDiv.style.color = "green";
-                        feedbackDiv.style.border = "1px solid green";
-
+                        feedbackDiv.style.backgroundColor = "rgba(255,255,255,0.9)";
                         feedbackDiv.innerHTML = "Correct!";
                         if (event.target.style.backgroundColor !== "green" && event.target.style.backgroundColor !== "darkred") {
                             let tally = parseInt(document.getElementById('correct-answer-tally').value);
@@ -129,7 +127,7 @@
                         document.getElementById('incorrect-answer-tally').value = tally + 1;
                         feedbackDiv.innerHTML = "Incorrect! Try again.";
                         feedbackDiv.style.color = "darkred";
-                        feedbackDiv.style.border = "1px solid darkred";
+                        feedbackDiv.style.backgroundColor = "rgba(255,255,255,0.8)";
                     }
                 })
             }
